@@ -16,16 +16,27 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+console.log("API KEY EXISTS:", !!process.env.GEMINI_API_KEY);
+console.log("API KEY:", process.env.GEMINI_API_KEY);
+
+
 app.post("/api/chat", async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { messages } = req.body;
+
+    const contents = messages.map((m) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.text }],
+    }));
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: prompt,
+      contents,
     });
 
-    res.json({ reply: response.text });
+    res.json({
+      reply: response.text,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Gemini request failed" });
